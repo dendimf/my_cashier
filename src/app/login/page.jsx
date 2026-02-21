@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
@@ -9,10 +9,16 @@ import { Eye, EyeOff, ShoppingCart } from 'lucide-react'
 
 export default function LoginPage() {
     const router = useRouter()
-    const setAuth = useAuthStore((s) => s.setAuth)
+    const { setAuth, isAuthenticated, _hasHydrated } = useAuthStore()
     const [form, setForm] = useState({ email: '', password: '' })
     const [showPass, setShowPass] = useState(false)
     const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        if (_hasHydrated && isAuthenticated) {
+            router.replace('/select-store')
+        }
+    }, [_hasHydrated, isAuthenticated, router])
 
     const handleSubmit = async (e) => {
         e.preventDefault()

@@ -20,9 +20,16 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401 && typeof window !== 'undefined') {
+        const status = error.response?.status
+        const url = error.config?.url
+
+        console.error(`❌ API Error [${status}] at ${url}:`, error.response?.data || error.message)
+
+        if (status === 401 && typeof window !== 'undefined') {
+            console.warn('🔑 Auth failed, clearing session and redirecting...')
             localStorage.removeItem('token')
             localStorage.removeItem('user')
+            localStorage.removeItem('kasirku-auth') // Clear Zustand persist state
             window.location.href = '/login'
         }
         return Promise.reject(error)

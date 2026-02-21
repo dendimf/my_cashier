@@ -1,5 +1,12 @@
+const fs = require('fs')
 const path = require('path')
-require('dotenv').config({ path: path.join(__dirname, '../.env') })
+
+const envPath = fs.existsSync(path.join(__dirname, '../.env'))
+    ? path.join(__dirname, '../.env')
+    : path.join(__dirname, '../../.env')
+
+console.log('📂 Loading .env from:', envPath)
+require('dotenv').config({ path: envPath })
 
 console.log('🚀 Environment Loading Status:')
 console.log('- SUPABASE_URL:', process.env.SUPABASE_URL ? '✅ Loaded' : '❌ Missing')
@@ -34,8 +41,22 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 // Health check
-app.get('/health', (req, res) => {
-    res.json({ success: true, message: 'KasirKu API is running', version: '2.0.0' })
+app.get('/health', async (req, res) => {
+    let dbStatus = 'Checking...'
+    try {
+        const { error } = await require('./config/supabase').from('stores').select('id').limit(1)
+        dbStatus = error ? `Error: ${error.message}` : '✅ Connected'
+    } catch (err) {
+        dbStatus = `Exception: ${err.message}`
+    }
+
+    res.json({
+        success: true,
+        message: 'KasirKu API is running',
+        version: '2.0.0',
+        database: dbStatus,
+        env_path: path.join(__dirname, '../../.env')
+    })
 })
 
 // Routes

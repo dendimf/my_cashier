@@ -8,7 +8,7 @@ import { Store, Plus, LogOut, ShoppingCart, MapPin } from 'lucide-react'
 
 export default function SelectStorePage() {
     const router = useRouter()
-    const { user, isAuthenticated, logout, setCurrentStore } = useAuthStore()
+    const { user, isAuthenticated, logout, setCurrentStore, _hasHydrated } = useAuthStore()
     const [stores, setStores] = useState([])
     const [loading, setLoading] = useState(true)
     const [showCreate, setShowCreate] = useState(false)
@@ -16,9 +16,10 @@ export default function SelectStorePage() {
     const [creating, setCreating] = useState(false)
 
     useEffect(() => {
+        if (!_hasHydrated) return
         if (!isAuthenticated) { router.push('/login'); return }
         fetchStores()
-    }, [isAuthenticated])
+    }, [_hasHydrated, isAuthenticated])
 
     const fetchStores = async () => {
         try {
@@ -62,6 +63,8 @@ export default function SelectStorePage() {
         router.push('/login')
     }
 
+    if (!_hasHydrated) return null
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
             <div className="max-w-2xl mx-auto">
@@ -86,7 +89,10 @@ export default function SelectStorePage() {
 
                 {/* Stores */}
                 {loading ? (
-                    <div className="text-center text-slate-400 py-12">Memuat toko...</div>
+                    <div className="text-center text-slate-400 py-12">
+                        <div className="animate-spin w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full mx-auto mb-4" />
+                        Memuat toko...
+                    </div>
                 ) : (
                     <div className="grid gap-4">
                         {stores.map(store => (

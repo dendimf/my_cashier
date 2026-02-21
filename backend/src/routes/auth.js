@@ -8,13 +8,13 @@ const router = express.Router()
 
 // Generate JWT token
 const generateToken = (user) => {
-    const secret = process.env.JWT_SECRET || 'kasirku-temporary-secret-key-32-chars-at-least'
-    if (!process.env.JWT_SECRET) {
+    const secret = process.env.JWT_SECRET
+    if (!secret) {
         console.error('❌ CRITICAL ERROR: JWT_SECRET is missing from environment variables!')
     }
     return jwt.sign(
         { id: user.id, email: user.email, role: user.role },
-        secret,
+        secret || 'kasirku-temporary-secret-key-32-chars-at-least',
         { expiresIn: process.env.JWT_EXPIRY || '24h' }
     )
 }
@@ -100,8 +100,22 @@ router.post('/login', async (req, res) => {
             .single()
 
         console.log('🔍 Login attempt for:', email.toLowerCase())
-        if (error || !user) {
-            console.error('❌ User not found or Supabase error:', error)
+        if (error) {
+            console.error('❌ Supabase error during login:', error)
+            const isConnectionError = error.code === 'ENOTFOUND' ||
+                error.message?.includes('ENOTFOUND') ||
+                error.message?.includes('fetch')
+
+            if (isConnectionError) {
+                return res.status(503).json({
+                    success: false,
+                    error: 'Database connection failed. Please check your internet connection and DNS settings.'
+                })
+            }
+            return res.status(401).json({ success: false, error: 'Invalid email or password' })
+        }
+
+        if (!user) {
             return res.status(401).json({ success: false, error: 'Invalid email or password' })
         }
 
