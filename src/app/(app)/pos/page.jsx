@@ -3,7 +3,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuthStore } from '@/store'
 import { productsAPI, categoriesAPI, transactionsAPI, customersAPI } from '@/services/api'
 import toast from 'react-hot-toast'
-import { Search, Plus, Minus, Trash2, ShoppingCart, X, User, CreditCard } from 'lucide-react'
+import { Search, Plus, Minus, Trash2, ShoppingCart, X, User, CreditCard, Scan } from 'lucide-react'
+import BarcodeScanner from '@/components/BarcodeScanner'
 
 const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0)
 
@@ -22,6 +23,7 @@ export default function POSPage() {
     const [showCheckout, setShowCheckout] = useState(false)
     const [loading, setLoading] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [showScanner, setShowScanner] = useState(false)
 
     useEffect(() => {
         if (!currentStore?.id) return
@@ -64,6 +66,17 @@ export default function POSPage() {
         })
     }
 
+    const handleBarcodeScan = (code) => {
+        setShowScanner(false)
+        const product = products.find(p => p.barcode === code)
+        if (product) {
+            addToCart(product)
+            toast.success(`${product.name} ditambahkan`)
+        } else {
+            toast.error(`Produk dengan barcode ${code} tidak ditemukan`)
+        }
+    }
+
     const updateQty = (id, qty) => {
         if (qty <= 0) { setCart(prev => prev.filter(i => i.id !== id)); return }
         setCart(prev => prev.map(i => i.id === id ? { ...i, qty } : i))
@@ -102,14 +115,22 @@ export default function POSPage() {
             {/* Products Panel */}
             <div className="flex-1 flex flex-col min-h-0">
                 <div className="space-y-3 mb-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
-                        <input
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            placeholder="Cari produk..."
-                            className="w-full bg-slate-900 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-purple-400 text-sm"
-                        />
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+                            <input
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                placeholder="Cari produk..."
+                                className="w-full bg-slate-900 border border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-purple-400 text-sm"
+                            />
+                        </div>
+                        <button
+                            onClick={() => setShowScanner(true)}
+                            className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 text-sm font-medium"
+                        >
+                            <Scan className="w-4 h-4" /> Scan
+                        </button>
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-1">
                         <button onClick={() => setSelectedCat('')} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition ${!selectedCat ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}>
@@ -296,6 +317,13 @@ export default function POSPage() {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Barcode Scanner */}
+            {showScanner && (
+                <BarcodeScanner
+                    onScan={handleBarcodeScan}
+                    onClose={() => setShowScanner(false)}
+                />
             )}
         </div>
     )

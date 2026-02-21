@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store'
 import { productsAPI, categoriesAPI, storesAPI } from '@/services/api'
 import toast from 'react-hot-toast'
-import { Plus, Search, Edit, Trash2, Package, Image as ImageIcon, Upload, X } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Package, Image as ImageIcon, Upload, X, Scan } from 'lucide-react'
+import BarcodeScanner from '@/components/BarcodeScanner'
 
 const fmt = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n || 0)
 
@@ -21,6 +22,7 @@ export default function ProductsPage() {
     const [form, setForm] = useState({ name: '', price: '', cost: '', stock: '', min_stock: '5', unit: 'pcs', category_id: '', barcode: '', description: '', track_stock: true, image_url: '' })
     const [saving, setSaving] = useState(false)
     const [uploading, setUploading] = useState(false)
+    const [showScanner, setShowScanner] = useState(false)
 
     useEffect(() => {
         if (!currentStore?.id) return
@@ -236,8 +238,17 @@ export default function ProductsPage() {
                                 </div>
                                 <div className="sm:col-span-2">
                                     <label className="block text-sm text-slate-400 mb-1.5 font-medium">Barcode / SKU</label>
-                                    <input type="text" value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })} placeholder="Scan atau input barcode"
-                                        className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50" />
+                                    <div className="flex gap-2">
+                                        <input type="text" value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })} placeholder="Scan atau input barcode"
+                                            className="flex-1 bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowScanner(true)}
+                                            className="bg-slate-800 border border-white/10 text-slate-400 hover:text-purple-400 px-4 rounded-xl transition flex items-center gap-2"
+                                        >
+                                            <Scan className="w-4 h-4" /> Scan
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm text-slate-400 mb-1.5 font-medium">Kategori</label>
@@ -278,6 +289,17 @@ export default function ProductsPage() {
                         </form>
                     </div>
                 </div>
+            )}
+            {/* Barcode Scanner */}
+            {showScanner && (
+                <BarcodeScanner
+                    onScan={(code) => {
+                        setForm({ ...form, barcode: code })
+                        setShowScanner(false)
+                        toast.success('Barcode berhasil discan')
+                    }}
+                    onClose={() => setShowScanner(false)}
+                />
             )}
         </div>
     )
