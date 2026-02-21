@@ -22,8 +22,9 @@ api.interceptors.response.use(
     (error) => {
         const status = error.response?.status
         const url = error.config?.url
+        const errorData = error.response?.data?.error || error.message || 'Unknown error'
 
-        console.error(`❌ API Error [${status}] at ${url}:`, error.response?.data || error.message)
+        console.error(`❌ API Error [${status}] at ${url}:`, errorData)
 
         if (status === 401 && typeof window !== 'undefined') {
             console.warn('🔑 Auth failed, clearing session and redirecting...')

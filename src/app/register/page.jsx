@@ -34,7 +34,8 @@ export default function RegisterPage() {
             toast.success('Akun berhasil dibuat!')
             router.push('/select-store')
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Registrasi gagal')
+            const errorMsg = err.response?.data?.error || err.message || 'Registrasi gagal'
+            toast.error(typeof errorMsg === 'string' ? errorMsg : 'Registrasi gagal')
         } finally {
             setLoading(false)
         }

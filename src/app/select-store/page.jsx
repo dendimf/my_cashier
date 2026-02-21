@@ -25,8 +25,9 @@ export default function SelectStorePage() {
         try {
             const res = await storesAPI.list()
             setStores(res.data.data || [])
-        } catch {
-            toast.error('Gagal memuat toko')
+        } catch (err) {
+            const errorMsg = err.response?.data?.error || err.message || 'Gagal memuat toko'
+            toast.error(typeof errorMsg === 'string' ? errorMsg : 'Gagal memuat toko')
         } finally {
             setLoading(false)
         }

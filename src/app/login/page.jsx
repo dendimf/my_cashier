@@ -30,7 +30,8 @@ export default function LoginPage() {
             toast.success(`Selamat datang, ${user.full_name}!`)
             router.push('/select-store')
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Login gagal')
+            const errorMsg = err.response?.data?.error || err.message || 'Login gagal'
+            toast.error(typeof errorMsg === 'string' ? errorMsg : 'Login gagal')
         } finally {
             setLoading(false)
         }

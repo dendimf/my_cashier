@@ -82,8 +82,11 @@ app.use((err, req, res, next) => {
     res.status(500).json({ success: false, error: 'Internal server error' })
 })
 
-app.listen(PORT, () => {
-    console.log(`✅ KasirKu API running on http://localhost:${PORT}`)
-})
+// Only listen if not in serverless environment
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`✅ KasirKu API running on http://localhost:${PORT}`)
+    })
+}
 
 module.exports = app
